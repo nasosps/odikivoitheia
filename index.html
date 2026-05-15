@@ -49,6 +49,11 @@
             text-decoration: none;
         }
 
+        button,
+        input {
+            font: inherit;
+        }
+
         img {
             display: block;
             max-width: 100%;
@@ -204,6 +209,88 @@
             font-size: 0.88rem;
             line-height: 1.2;
             font-weight: 800;
+        }
+
+        .location-share {
+            display: grid;
+            gap: 9px;
+            padding: 13px;
+            border-radius: 8px;
+            background: rgba(255, 248, 237, 0.96);
+            color: var(--ink);
+            box-shadow: 0 14px 34px rgba(7, 8, 33, 0.28);
+        }
+
+        .location-share label {
+            color: var(--navy);
+            font-size: 0.82rem;
+            font-weight: 900;
+        }
+
+        .location-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .location-share input {
+            width: 100%;
+            min-height: 48px;
+            border: 2px solid rgba(18, 20, 71, 0.14);
+            border-radius: 8px;
+            padding: 0 12px;
+            background: var(--white);
+            color: var(--ink);
+            font-size: 0.96rem;
+            font-weight: 800;
+        }
+
+        .location-share input:focus {
+            outline: 3px solid rgba(244, 124, 34, 0.22);
+            border-color: var(--orange-strong);
+        }
+
+        .location-share button {
+            min-height: 52px;
+            border: 0;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--orange-strong);
+            color: var(--white);
+            font-size: 0.96rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 22px rgba(244, 124, 34, 0.28);
+        }
+
+        .location-share button:disabled {
+            cursor: wait;
+            opacity: 0.78;
+        }
+
+        .location-share button svg {
+            width: 21px;
+            height: 21px;
+        }
+
+        .location-status {
+            min-height: 1.9rem;
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.78rem;
+            line-height: 1.28;
+            font-weight: 800;
+        }
+
+        .location-status.is-success {
+            color: var(--success-dark);
+        }
+
+        .location-status.is-error {
+            color: #b5251b;
         }
 
         .quick-actions {
@@ -513,6 +600,17 @@
             }
         }
 
+        @media (min-width: 460px) {
+            .location-row {
+                grid-template-columns: 1fr auto;
+            }
+
+            .location-share button {
+                padding: 0 16px;
+                white-space: nowrap;
+            }
+        }
+
         @media (min-width: 700px) {
             body {
                 background: #050615;
@@ -546,6 +644,19 @@
                     <small>Ανοίγει απευθείας το τηλέφωνο</small>
                 </span>
             </a>
+
+            <form class="location-share" id="location-form">
+                <label for="location-name">Γράψε το ονοματεπώνυμό σου</label>
+                <div class="location-row">
+                    <input id="location-name" name="name" type="text" autocomplete="name"
+                        placeholder="π.χ. Γιώργος Παπαδόπουλος" required>
+                    <button type="submit" id="location-submit">
+                        <i data-lucide="map-pin" aria-hidden="true"></i>
+                        Στείλε τοποθεσία
+                    </button>
+                </div>
+                <p class="location-status" id="location-status" aria-live="polite"></p>
+            </form>
 
             <div class="badge">
                 <i data-lucide="shield-check" aria-hidden="true"></i>
@@ -694,6 +805,82 @@
             attrs: {
                 "stroke-width": 2.4
             }
+        });
+
+        const locationForm = document.getElementById("location-form");
+        const locationName = document.getElementById("location-name");
+        const locationButton = document.getElementById("location-submit");
+        const locationStatus = document.getElementById("location-status");
+        const emergencyPhone = "+306947278884";
+
+        function setLocationStatus(message, type = "") {
+            locationStatus.textContent = message;
+            locationStatus.className = type ? `location-status is-${type}` : "location-status";
+        }
+
+        function setLocationLoading(isLoading) {
+            locationButton.disabled = isLoading;
+            locationButton.innerHTML = isLoading
+                ? '<i data-lucide="loader-circle" aria-hidden="true"></i> Εντοπισμός...'
+                : '<i data-lucide="map-pin" aria-hidden="true"></i> Στείλε τοποθεσία';
+            lucide.createIcons({
+                attrs: {
+                    "stroke-width": 2.4
+                }
+            });
+        }
+
+        function openSms(message) {
+            window.location.href = `sms:${emergencyPhone}?&body=${encodeURIComponent(message)}`;
+        }
+
+        locationForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const fullName = locationName.value.trim().replace(/\s+/g, " ");
+            if (!fullName) {
+                setLocationStatus("Γράψτε πρώτα το ονοματεπώνυμό σας.", "error");
+                locationName.focus();
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                setLocationStatus("Η συσκευή δεν υποστηρίζει αποστολή τοποθεσίας.", "error");
+                return;
+            }
+
+            setLocationLoading(true);
+            setLocationStatus("Ζητάμε άδεια για την τοποθεσία σας...");
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude.toFixed(6);
+                    const longitude = position.coords.longitude.toFixed(6);
+                    const accuracy = Math.round(position.coords.accuracy || 0);
+                    const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                    const accuracyLine = accuracy ? `\nΑκρίβεια: περίπου ${accuracy} μ.` : "";
+                    const message = `Οδική βοήθεια\nΟνοματεπώνυμο: ${fullName}\nΒρίσκομαι εδώ: ${mapsLink}${accuracyLine}`;
+
+                    openSms(message);
+                    setLocationStatus("Άνοιξε SMS. Πατήστε αποστολή από το κινητό.", "success");
+                    setLocationLoading(false);
+                },
+                (error) => {
+                    const messages = {
+                        1: "Δεν δόθηκε άδεια τοποθεσίας. Δοκιμάστε ξανά και πατήστε αποδοχή.",
+                        2: "Δεν βρέθηκε η τοποθεσία. Δοκιμάστε ξανά σε λίγο.",
+                        3: "Άργησε ο εντοπισμός. Δοκιμάστε ξανά."
+                    };
+
+                    setLocationStatus(messages[error.code] || "Δεν μπορέσαμε να βρούμε την τοποθεσία.", "error");
+                    setLocationLoading(false);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
         });
     </script>
 </body>
