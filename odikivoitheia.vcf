@@ -1,0 +1,15 @@
+BEGIN:VCARD
+VERSION:3.0
+FN;CHARSET=UTF-8:Βασίλης Σφακιανάκης | Οδική Βοήθεια
+N;CHARSET=UTF-8:Σφακιανάκης;Βασίλης;;;
+ORG;CHARSET=UTF-8:Οδική Βοήθεια Σφακιανάκης Βασίλης
+TITLE;CHARSET=UTF-8:Οδική Βοήθεια - Μεταφορές - Γερανός
+TEL;TYPE=cell:+306947278884
+TEL;TYPE=work:+302810342005
+EMAIL;TYPE=work:info@odikivoitheia.com.gr
+ADR;TYPE=work;CHARSET=UTF-8:;;Λακωνίας και Ηλείας;Ηράκλειο;Κρήτη;71303;Ελλάδα
+URL:https://odikivoitheia.com.gr/
+URL;TYPE=Facebook:https://www.facebook.com/odiki.sfakianakis.vasilis
+URL;TYPE=Instagram:https://www.instagram.com/sfakianakis.odiki/
+NOTE;CHARSET=UTF-8:24ωρη οδική βοήθεια στην Κρήτη. Ρυμούλκηση, μεταφορά οχήματος, γερανός, αλλαγή ελαστικού και εκκίνηση από μπαταρία.
+END:VCARD
